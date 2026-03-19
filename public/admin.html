@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Admin Dashboard · AttendFlow (strictly current day)</title>
+  <style>
+    /* ========== STYLES (identical to previous, keep concise) ========== */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { min-height: 100vh; display: flex; }
+    .sidebar { width: 280px; background: linear-gradient(165deg, #0b3b2f 0%, #1f6e5c 100%); backdrop-filter: blur(4px); color: white; transition: width 0.25s cubic-bezier(0.2, 0.9, 0.3, 1); overflow-x: hidden; box-shadow: 8px 0 30px rgba(0, 60, 40, 0.25); display: flex; flex-direction: column; flex-shrink: 0; border-radius: 0 32px 32px 0; }
+    .sidebar.collapsed { width: 88px; }
+    .sidebar.collapsed .menu-item span, .sidebar.collapsed .sidebar-header h2, .sidebar.collapsed .sidebar-footer span { opacity: 0; width: 0; display: inline-block; overflow: hidden; }
+    .sidebar-header { padding: 28px 16px 24px; display: flex; align-items: center; justify-content: space-between; min-height: 88px; }
+    .sidebar-header h2 { font-size: 1.6rem; font-weight: 600; letter-spacing: -0.5px; background: linear-gradient(135deg, #ffffff, #d2f0e8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; white-space: nowrap; transition: opacity 0.2s; }
+    .toggle-btn { background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.4); color: white; width: 40px; height: 40px; border-radius: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.4rem; transition: 0.2s; backdrop-filter: blur(4px); flex-shrink: 0; box-shadow: 0 6px 14px rgba(0, 30, 20, 0.3); }
+    .toggle-btn:hover { background: #2f8b77; border-color: white; transform: scale(1.05); }
+    .sidebar-menu { flex: 1; padding: 16px 8px; }
+    .menu-item { display: flex; align-items: center; gap: 16px; padding: 14px 18px; margin: 6px 8px; border-radius: 18px; color: #e2ffee; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; font-weight: 500; backdrop-filter: blur(4px); }
+    .menu-item i { font-size: 1.8rem; min-width: 36px; text-align: center; font-style: normal; filter: drop-shadow(0 2px 4px rgba(0,40,20,0.4)); }
+    .menu-item span { transition: opacity 0.15s; font-size: 1rem; }
+    .menu-item:hover { background: rgba(255,255,255,0.18); color: white; transform: translateX(4px); }
+    .menu-item.active { background: linear-gradient(115deg, #44b896, #2f9f82); color: white; box-shadow: 0 12px 18px -8px rgba(20, 80, 60, 0.5); }
+    .sidebar-footer { padding: 24px 20px 30px; font-size: 0.85rem; color: #a0d9cc; border-top: 1px solid rgba(255,255,255,0.15); white-space: nowrap; }
+    .main-content { flex: 1; padding: 28px 32px; transition: all 0.3s ease; overflow-x: auto; width: calc(100% - 280px); }
+    .sidebar.collapsed + .main-content { width: calc(100% - 88px); }
+    .panel { display: none; animation: slideUp 0.3s ease; }
+    .panel.active-panel { display: block; }
+    @keyframes slideUp { 0% { opacity: 0; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
+    .card { background: rgba(255,255,255,0.75); backdrop-filter: blur(12px); border-radius: 36px; padding: 28px; margin-bottom: 28px; box-shadow: 0 20px 40px -12px rgba(10, 70, 50, 0.25); border: 1px solid rgba(120, 200, 160, 0.4); }
+    h1 { font-size: 2.2rem; font-weight: 700; background: linear-gradient(140deg, #0f4d3d, #218b70); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 24px; letter-spacing: -0.02em; }
+    .schedule-editor { background: rgba(255,255,255,0.55); backdrop-filter: blur(16px); border-radius: 40px; padding: 28px; border: 2px solid rgba(80, 180, 140, 0.5); box-shadow: 0 18px 36px -12px #1d6e5b; }
+    .schedule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+    .schedule-section { background: white; border-radius: 28px; padding: 24px; box-shadow: 0 10px 20px rgba(0, 60, 30, 0.1); }
+    .time-input { width: 100%; padding: 14px 18px; border: 2px solid #c6eadc; border-radius: 28px; font-size: 1rem; background: #f3fff9; transition: 0.2s; }
+    .time-input:focus { border-color: #249f82; box-shadow: 0 0 0 4px rgba(50, 170, 130, 0.2); outline: none; }
+    .save-schedule-btn, .reset-schedule-btn { padding: 14px 34px; border-radius: 50px; font-weight: 600; border: none; cursor: pointer; font-size: 1.1rem; background: white; box-shadow: 0 8px 18px rgba(30, 110, 80, 0.2); transition: all 0.2s; }
+    .save-schedule-btn { background: linear-gradient(135deg, #1f8f76, #166b58); color: white; }
+    .reset-schedule-btn { background: rgba(200, 230, 220, 0.8); color: #135e4c; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin: 28px 0; }
+    .stat-card { background: linear-gradient(145deg, #2c9b81, #1b765f); color: white; border-radius: 32px; padding: 28px 22px; text-align: center; box-shadow: 0 20px 30px -8px #1d705a; border: 1px solid rgba(255,255,255,0.3); }
+    .stat-number { font-size: 2.8rem; font-weight: 700; letter-spacing: -1px; }
+    .section-stat { background: rgba(255,255,255,0.7); backdrop-filter: blur(4px); border-radius: 24px; padding: 18px; border: 1px solid #b5e3d2; }
+    .filters { display: flex; flex-wrap: wrap; gap: 14px; background: rgba(255,255,255,0.7); backdrop-filter: blur(12px); padding: 22px 28px; border-radius: 60px; margin: 28px 0; align-items: center; border: 1px solid #c2eedd; }
+    .filter-select, .filter-input, .date-input { padding: 12px 22px; border: 2px solid #b0e2d2; border-radius: 40px; background: white; font-size: 0.95rem; min-width: 140px; }
+    .refresh-btn { background: linear-gradient(135deg, #1b8f74, #116554); color: white; border: none; border-radius: 40px; padding: 12px 32px; font-weight: 600; margin-left: auto; cursor: pointer; box-shadow: 0 6px 16px #18745e; transition: 0.15s; }
+    .table-container { overflow-x: auto; border-radius: 32px; background: rgba(255,255,255,0.7); backdrop-filter: blur(4px); border: 2px solid rgba(150, 210, 180, 0.7); }
+    .records-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+    .records-table th { background: #dcf5ea; color: #0c543f; padding: 20px 16px; font-weight: 600; }
+    .records-table td { padding: 16px; border-bottom: 1px solid #c2ebdc; }
+    .late-row { background: #fff3e8; }
+    .late-badge { background: #ffad8a; color: #812000; padding: 6px 18px; border-radius: 40px; font-weight: 600; }
+    .ontime-badge { background: #a3f0d4; color: #07523e; padding: 6px 18px; border-radius: 40px; font-weight: 600; }
+    .pagination-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 28px; background: rgba(255,255,255,0.65); backdrop-filter: blur(12px); padding: 18px 28px; border-radius: 80px; }
+    .rows-per-page select { padding: 10px 24px; border: 2px solid #a8dfce; border-radius: 40px; background: white; font-weight: 500; }
+    .page-buttons { display: flex; gap: 8px; }
+    .page-btn { background: white; border: 2px solid #b0e2d2; color: #166552; min-width: 46px; height: 46px; border-radius: 46px; font-weight: 600; cursor: pointer; transition: 0.15s; }
+    .page-btn.active-page { background: #249377; border-color: #249377; color: white; }
+    .success-message { background: #bff0e0; color: #0b553f; padding: 16px 28px; border-radius: 60px; margin-bottom: 20px; display: none; font-weight: 500; backdrop-filter: blur(6px); }
+    .empty-state { text-align: center; padding: 60px; color: #2b7763; font-size: 1.2rem; }
+    @media (max-width: 700px) { body { flex-direction: column; } .sidebar { width: 100% !important; border-radius: 0 0 32px 32px; flex-direction: row; align-items: center; padding: 8px 16px; min-height: 70px; } .sidebar.collapsed { width: 100% !important; } .sidebar-header, .sidebar-footer { display: none; } .sidebar-menu { display: flex; flex-direction: row; padding: 0; margin: 0; gap: 8px; overflow-x: auto; } .menu-item { margin: 4px; padding: 10px 16px; } .menu-item span { display: inline-block !important; opacity: 1 !important; width: auto !important; } .toggle-btn { display: none; } .main-content { width: 100% !important; padding: 16px; } }
+    @media (max-width: 480px) { .menu-item i { font-size: 1.4rem; min-width: 28px; } .menu-item span { font-size: 0.85rem; } }
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR (identical) -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>AttendFlow</h2>
+      <div class="toggle-btn" id="toggleSidebar">◀</div>
+    </div>
+    <div class="sidebar-menu">
+      <div class="menu-item active" data-panel="dashboard"><i>📋</i> <span>Dashboard</span></div>
+      <div class="menu-item" data-panel="filterStudents"><i>🔍</i> <span>Filter students</span></div>
+      <div class="menu-item" data-panel="setSchedule"><i>⚙️</i> <span>Set schedule</span></div>
+    </div>
+    <div class="sidebar-footer"><span>✨ modern · green · v2.0</span></div>
+  </div>
+
+  <!-- MAIN PANELS -->
+  <div class="main-content" id="mainContent">
+    <div id="successMessage" class="success-message"></div>
+
+    <!-- DASHBOARD PANEL -->
+    <div id="dashboardPanel" class="panel active-panel">
+      <h1>📊 Dashboard overview</h1>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-number" id="totalRecords">0</div><div>Total Records</div></div>
+        <div class="stat-card"><div class="stat-number" id="uniqueStudents">0</div><div>Unique Students</div></div>
+        <div class="stat-card"><div class="stat-number" id="todayRecords">0</div><div>Today's Records</div></div>
+        <div class="stat-card"><div class="stat-number" id="activeSections">0</div><div>Active Sections</div></div>
+      </div>
+      <!-- SECTION STATS – STRICTLY CURRENT DAY (today's date only) -->
+      <div id="sectionStats" class="stats-grid" style="grid-template-columns:repeat(4,1fr);"></div>
+      <!-- summary inline (global, but we keep for context) -->
+      <div class="filters" style="justify-content:space-around; border-radius:50px;">
+        <span>🧾 Total present: <strong id="totalPresent">0</strong></span>
+        <span>⚠️ Late: <strong id="totalLate" style="color:#b1421b;">0</strong></span>
+        <span>✅ On time: <strong id="totalOnTime">0</strong></span>
+        <span>📊 Late rate: <strong id="lateRate">0%</strong></span>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:20px; color:#105e48;">📋 Recent entries</h3>
+        <div id="dashboardTableContainer" class="table-container"><div class="loading" style="padding:40px;">Loading ...</div></div>
+      </div>
+    </div>
+
+    <!-- FILTER STUDENTS PANEL (unchanged) -->
+    <div id="filterStudentsPanel" class="panel">
+      <h1>🔍 Filter attendance</h1>
+      <div class="filters">
+        <select id="sectionFilter" class="filter-select"><option value="">All Sections</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+        <select id="statusFilter" class="filter-select"><option value="">All Status</option><option value="late">Late Only</option><option value="ontime">On Time Only</option></select>
+        <input type="date" id="dateFrom" class="date-input"><span>→</span><input type="date" id="dateTo" class="date-input">
+        <input type="text" id="searchInput" class="filter-input" placeholder="Name or IP...">
+        <button id="refreshBtn" class="refresh-btn">🔄 Refresh</button>
+      </div>
+      <div id="tableContainer" class="table-container"><div class="loading">Loading attendance data...</div></div>
+      <div class="pagination-controls">
+        <div class="rows-per-page"><span>Rows per page:</span><select id="rowsPerPage"><option value="5" selected>5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option></select></div>
+        <div class="page-buttons" id="paginationButtons"></div>
+      </div>
+    </div>
+
+    <!-- SET SCHEDULE PANEL (unchanged) -->
+    <div id="setSchedulePanel" class="panel">
+      <h1>⚙️ Class schedule</h1>
+      <div class="schedule-editor">
+        <div class="schedule-grid">
+          <div class="schedule-section"><h3 style="color:#166e58;">🌅 Morning</h3><div><label>Start</label><input type="time" id="morningStart" class="time-input" value="08:00"></div><div><label>Late cutoff</label><input type="time" id="morningLateCutoff" class="time-input" value="08:20"></div><div><label>End</label><input type="time" id="morningEnd" class="time-input" value="10:30"></div></div>
+          <div class="schedule-section"><h3 style="color:#166e58;">☀️ Afternoon</h3><div><label>Start</label><input type="time" id="afternoonStart" class="time-input" value="13:00"></div><div><label>Late cutoff</label><input type="time" id="afternoonLateCutoff" class="time-input" value="13:20"></div><div><label>End (opt)</label><input type="time" id="afternoonEnd" class="time-input"></div></div>
+        </div>
+        <div style="display:flex; gap:20px; justify-content:flex-end; margin-top:36px;"><button class="reset-schedule-btn" onclick="resetSchedule()">↩️ Reset</button><button class="save-schedule-btn" onclick="saveSchedule()">💾 Save</button></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ---------- GLOBAL ----------
+      let allRecords = [];
+      let filteredRecords = [];
+      let paginatedRecords = [];
+      let currentPage = 1;
+      let rowsPerPage = 5;
+      let currentSchedule = null;
+
+      // ---------- SIDEBAR TOGGLE ----------
+      const sidebar = document.getElementById('sidebar');
+      const toggleBtn = document.getElementById('toggleSidebar');
+      function setToggleIcon() { toggleBtn.innerText = sidebar.classList.contains('collapsed') ? '▶' : '◀'; }
+      toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('collapsed'); setToggleIcon(); });
+      setToggleIcon();
+
+      // panel switching
+      const menuItems = document.querySelectorAll('.menu-item');
+      const panels = { dashboard: document.getElementById('dashboardPanel'), filterStudents: document.getElementById('filterStudentsPanel'), setSchedule: document.getElementById('setSchedulePanel') };
+      menuItems.forEach(item => {
+        item.addEventListener('click', () => {
+          menuItems.forEach(i => i.classList.remove('active')); item.classList.add('active');
+          const target = item.dataset.panel; Object.values(panels).forEach(p => p.classList.remove('active-panel'));
+          if (target === 'dashboard') panels.dashboard.classList.add('active-panel');
+          if (target === 'filterStudents') { panels.filterStudents.classList.add('active-panel'); applyFiltersAndPaginate(); }
+          if (target === 'setSchedule') panels.setSchedule.classList.add('active-panel');
+        });
+      });
+
+      // helpers
+      const normalizeDate = d => d && d.includes('T') ? d.split('T')[0] : d || '';
+      const formatTime = t => { if (!t) return ''; let [h, m] = t.length >= 5 ? [t.slice(0,2), t.slice(3,5)] : ['00','00']; const hour = parseInt(h,10); const ampm = hour >= 12 ? 'PM' : 'AM'; const hour12 = hour % 12 || 12; return `${hour12}:${m} ${ampm}`; };
+      const formatDate = d => d ? d.split('-').reverse().join('/') : '';
+      const escapeHtml = s => s ? String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) : '';
+      const showMessage = (text, ok = true) => { const msg = document.getElementById('successMessage'); msg.style.display = 'block'; msg.innerText = text; msg.style.background = ok ? '#bff0e0' : '#ffd7cc'; msg.style.color = ok ? '#0b553f' : '#9a3c1c'; setTimeout(() => msg.style.display = 'none', 2600); };
+
+      // schedule functions (unchanged, but keep)
+      window.loadSchedule = async () => { /* ... same as before ... */ 
+        try {
+          let res = await fetch('/schedule'); if (!res.ok) return;
+          let result = await res.json();
+          if (result.success && result.data) {
+            currentSchedule = result.data;
+            document.getElementById('morningStart').value = (currentSchedule.morning_start || '08:00:00').slice(0,5);
+            document.getElementById('morningLateCutoff').value = (currentSchedule.morning_late_cutoff || '08:20:00').slice(0,5);
+            document.getElementById('morningEnd').value = (currentSchedule.morning_end || '10:30:00').slice(0,5);
+            document.getElementById('afternoonStart').value = (currentSchedule.afternoon_start || '13:00:00').slice(0,5);
+            document.getElementById('afternoonLateCutoff').value = (currentSchedule.afternoon_late_cutoff || '13:20:00').slice(0,5);
+            document.getElementById('afternoonEnd').value = currentSchedule.afternoon_end ? currentSchedule.afternoon_end.slice(0,5) : '';
+          }
+        } catch (e) { console.log(e); }
+      };
+      window.saveSchedule = async () => {
+        const data = {
+          morning_start: document.getElementById('morningStart').value + ':00',
+          morning_late_cutoff: document.getElementById('morningLateCutoff').value + ':00',
+          morning_end: document.getElementById('morningEnd').value + ':00',
+          afternoon_start: document.getElementById('afternoonStart').value + ':00',
+          afternoon_late_cutoff: document.getElementById('afternoonLateCutoff').value + ':00',
+          afternoon_end: document.getElementById('afternoonEnd').value ? document.getElementById('afternoonEnd').value + ':00' : null,
+        };
+        if (data.morning_late_cutoff <= data.morning_start) { showMessage('late cutoff must be after start', false); return; }
+        try {
+          let r = await fetch('/schedule', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+          let res = await r.json();
+          if (res.success) { showMessage('✅ Schedule saved'); loadSchedule(); } else { showMessage(res.message || 'error', false); }
+        } catch (e) { showMessage('Error saving', false); }
+      };
+      window.resetSchedule = () => {
+        document.getElementById('morningStart').value = '08:00';
+        document.getElementById('morningLateCutoff').value = '08:20';
+        document.getElementById('morningEnd').value = '10:30';
+        document.getElementById('afternoonStart').value = '13:00';
+        document.getElementById('afternoonLateCutoff').value = '13:20';
+        document.getElementById('afternoonEnd').value = '';
+        saveSchedule();
+      };
+
+      // ---------- LOAD DATA ----------
+      async function loadData() {
+        try {
+          let res = await fetch('/attendance');
+          let raw = await res.json();
+          
+          // Process records with proper date handling
+          allRecords = raw.map(r => {
+            // Get the raw date value
+            let rawDate = r.date || '';
+            
+            // CRITICAL FIX: Handle timezone issues by extracting just the date part
+            // If the date includes time information, split it
+            let processedDate = rawDate;
+            
+            // Handle different date formats
+            if (rawDate.includes('T')) {
+              // ISO format: "2026-03-11T18:30:00.000Z" -> take only YYYY-MM-DD
+              processedDate = rawDate.split('T')[0];
+            } else if (rawDate.includes(' ')) {
+              // Space format: "2026-03-11 18:30:00" -> take only YYYY-MM-DD
+              processedDate = rawDate.split(' ')[0];
+            }
+            
+            // Remove any timezone offset indicators
+            processedDate = processedDate.replace(/[+-]\d{2}:?\d{2}$/, '');
+            
+            return {
+              id: r.id, 
+              name: r.name||'', 
+              section: r.section||'',
+              date: processedDate, // Now it's a clean YYYY-MM-DD
+              time: r.time||'',
+              ip_address: r.ip_address||'',
+              is_late: r.is_late === 1 || r.is_late === true || r.is_late === '1'
+            };
+          });
+
+          // Debug: Log dates to console to see what's happening
+          console.log('Processed records:', allRecords.map(r => ({ name: r.name, date: r.date })));
+          
+          // update dashboard stats – with strict current day sections
+          updateDashboardStatsAndSections();
+          // refresh filter panel
+          applyFiltersAndPaginate();
+          renderDashboardRecent();
+        } catch (e) {
+          console.error('Load error:', e);
+          document.getElementById('tableContainer').innerHTML = '<div class="empty-state">⚠️ failed to load</div>';
+        }
+      }
+
+      // *** SECTION STATS: ONLY CURRENT DAY – absolutely no previous days ***
+      function updateDashboardStatsAndSections() {
+        // Get today's date in YYYY-MM-DD format using local timezone
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`; // e.g., "2026-03-12"
+        
+        // Debug: Show what today we're comparing against
+        console.log('Today is (local):', todayStr);
+        console.log('Records with dates:', allRecords.map(r => `${r.name}: ${r.date} === ${todayStr}? ${r.date === todayStr}`));
+
+        // global stats (for cards)
+        document.getElementById('totalRecords').textContent = allRecords.length;
+        document.getElementById('uniqueStudents').textContent = new Set(allRecords.map(r => r.name.toLowerCase())).size;
+        const todayRecords = allRecords.filter(r => r.date === todayStr);
+        document.getElementById('todayRecords').textContent = todayRecords.length;
+        document.getElementById('activeSections').textContent = new Set(allRecords.map(r => r.section)).size;
+
+        // summary bar (global)
+        const totalLateGlobal = allRecords.filter(r => r.is_late).length;
+        const totalOnTimeGlobal = allRecords.length - totalLateGlobal;
+        document.getElementById('totalPresent').textContent = allRecords.length;
+        document.getElementById('totalLate').textContent = totalLateGlobal;
+        document.getElementById('totalOnTime').textContent = totalOnTimeGlobal;
+        document.getElementById('lateRate').textContent = allRecords.length ? Math.round((totalLateGlobal/allRecords.length)*100)+'%' : '0%';
+
+        // **** SECTION STATS – ONLY TODAY (strict equality) ****
+        const sections = ['A','B','C','D'];
+        let html = '';
+        sections.forEach(sec => {
+          // filter by section AND date exactly equal to todayStr
+          const recsToday = allRecords.filter(r => r.section === sec && r.date === todayStr);
+          const lateCount = recsToday.filter(r => r.is_late).length;
+          const onTimeCount = recsToday.length - lateCount;
+          html += `<div class="section-stat">
+            <h3 style="color:#14644d;">Section ${sec}</h3>
+            <div style="font-size:2rem;">${recsToday.length}</div>
+            <span style="color:#c1441b;">⚠️ ${lateCount} late</span> · 
+            <span style="color:#0b644b;">✓ ${onTimeCount} on time</span>
+          </div>`;
+        });
+        document.getElementById('sectionStats').innerHTML = html;
+      }
+
+      // filter & pagination (for filter panel)
+      function getFilters() {
+        return {
+          section: document.getElementById('sectionFilter').value,
+          status: document.getElementById('statusFilter').value,
+          search: document.getElementById('searchInput').value.toLowerCase().trim(),
+          from: document.getElementById('dateFrom').value,
+          to: document.getElementById('dateTo').value
+        };
+      }
+      function applyFilters() {
+        const f = getFilters();
+        filteredRecords = allRecords.filter(r => {
+          if (f.section && r.section !== f.section) return false;
+          if (f.status === 'late' && !r.is_late) return false;
+          if (f.status === 'ontime' && r.is_late) return false;
+          if (f.search && !r.name.toLowerCase().includes(f.search) && !r.ip_address.includes(f.search)) return false;
+          if (f.from && r.date < f.from) return false;
+          if (f.to && r.date > f.to) return false;
+          return true;
+        });
+      }
+      function paginate() { const start = (currentPage - 1) * rowsPerPage; paginatedRecords = filteredRecords.slice(start, start + rowsPerPage); }
+      function renderFilterTable() {
+        if (!paginatedRecords.length) { document.getElementById('tableContainer').innerHTML = '<div class="empty-state">📭 No matching records</div>'; return; }
+        let html = `<table class="records-table"><thead><tr><th>ID</th><th>Name</th><th>Sec</th><th>Date</th><th>Time</th><th>Status</th><th>IP</th></tr></thead><tbody>`;
+        paginatedRecords.forEach(r => { const badge = r.is_late ? '<span class="late-badge">⚠️ LATE</span>' : '<span class="ontime-badge">✓ ON TIME</span>'; html += `<tr class="${r.is_late ? 'late-row' : ''}"><td>${r.id}</td><td><strong>${escapeHtml(r.name)}</strong></td><td>${r.section}</td><td>${formatDate(r.date)}</td><td>${formatTime(r.time)}</td><td>${badge}</td><td>${r.ip_address}</td></tr>`; });
+        html += '</tbody></table>'; document.getElementById('tableContainer').innerHTML = html;
+      }
+      function renderPaginationControls() {
+        const totalPages = Math.ceil(filteredRecords.length / rowsPerPage) || 1;
+        let btns = `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(1)">⏮</button><button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage-1})">◀</button>`;
+        for (let i = 1; i <= totalPages; i++) { if (i === 1 || i === totalPages || (i >= currentPage-1 && i <= currentPage+1)) { btns += `<button class="page-btn ${i === currentPage ? 'active-page' : ''}" onclick="changePage(${i})">${i}</button>`; } else if (i === currentPage-2 || i === currentPage+2) { btns += `<span style="margin:0 6px;">...</span>`; } }
+        btns += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage+1})">▶</button><button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${totalPages})">⏭</button>`;
+        document.getElementById('paginationButtons').innerHTML = btns;
+      }
+      window.changePage = (page) => { const total = Math.ceil(filteredRecords.length / rowsPerPage) || 1; if (page < 1 || page > total) return; currentPage = page; paginate(); renderFilterTable(); renderPaginationControls(); };
+      function applyFiltersAndPaginate() { applyFilters(); currentPage = 1; rowsPerPage = parseInt(document.getElementById('rowsPerPage').value, 10) || 5; paginate(); renderFilterTable(); renderPaginationControls(); }
+
+      function renderDashboardRecent() {
+        let recent = allRecords.slice(0,5);
+        if (!recent.length) { document.getElementById('dashboardTableContainer').innerHTML = '<div class="empty-state">No entries</div>'; return; }
+        let html = `<table class="records-table"><thead><tr><th>Name</th><th>Section</th><th>Date</th><th>Time</th><th>Status</th></tr></thead><tbody>`;
+        recent.forEach(r => { const badge = r.is_late ? '<span class="late-badge">LATE</span>' : '<span class="ontime-badge">ON TIME</span>'; html += `<tr><td>${escapeHtml(r.name)}</td><td>${r.section}</td><td>${formatDate(r.date)}</td><td>${formatTime(r.time)}</td><td>${badge}</td></tr>`; });
+        html += '</tbody></table>'; document.getElementById('dashboardTableContainer').innerHTML = html;
+      }
+
+      // event listeners
+      document.getElementById('sectionFilter').addEventListener('change', applyFiltersAndPaginate);
+      document.getElementById('statusFilter').addEventListener('change', applyFiltersAndPaginate);
+      document.getElementById('searchInput').addEventListener('input', applyFiltersAndPaginate);
+      document.getElementById('dateFrom').addEventListener('change', applyFiltersAndPaginate);
+      document.getElementById('dateTo').addEventListener('change', applyFiltersAndPaginate);
+      document.getElementById('rowsPerPage').addEventListener('change', function() { rowsPerPage = parseInt(this.value, 10); currentPage = 1; paginate(); renderFilterTable(); renderPaginationControls(); });
+      document.getElementById('refreshBtn').addEventListener('click', loadData);
+
+      // initial
+      loadSchedule();
+      loadData();
+      setInterval(loadData, 30000);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>2nd year · attendance (edit only, name reset if no data)</title>
+  <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background: #f0f7fa;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.card {
+  width: 100%;
+  max-width: 1100px;
+  background: #ffffff;
+  border-radius: 48px;
+  padding: 28px 28px 32px;
+  box-shadow: 0 20px 40px -15px #1d5a6b;
+  transition: all 0.2s ease;
+  margin: 20px auto;
+}
+
+h2 {
+  font-size: 1.9rem;
+  font-weight: 570;
+  color: #09323f;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+h2 span {
+  background: #227a6b;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 5px 18px;
+  border-radius: 60px;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  background: #e2f0f0;
+  border-radius: 60px;
+  padding: 10px 20px 10px 24px;
+  margin-bottom: 30px;
+}
+
+.section-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.indicator-label {
+  color: #1b6572;
+}
+
+.indicator-value {
+  background: #227a6b;
+  color: white;
+  border-radius: 40px;
+  padding: 6px 22px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  min-width: 70px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.change-section-btn {
+  background: #1f7f6b;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 28px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 16px -12px #0d4d40;
+  cursor: pointer;
+  transition: 0.15s;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.change-section-btn:active {
+  transform: scale(0.96);
+  background: #146353;
+}
+
+.change-section-btn:hover {
+  background: #1a6f5c;
+}
+
+.class-info-bar {
+  background: #e8f3f7;
+  border-radius: 60px;
+  padding: 12px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1rem;
+  color: #1a4d5a;
+  border: 1px solid #c4dbe8;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.class-schedule {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.schedule-badge {
+  background: #227a6b;
+  color: white;
+  padding: 6px 16px;
+  border-radius: 40px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.late-rule {
+  background: #ffebe6;
+  color: #c73b1e;
+  padding: 6px 16px;
+  border-radius: 40px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.current-time-bar {
+  background: #ffffff;
+  border-radius: 60px;
+  padding: 12px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.1rem;
+  color: #1a4d5a;
+  border: 2px solid #c4dbe8;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.time-display {
+  font-weight: 600;
+  background: #e2f0f0;
+  padding: 6px 20px;
+  border-radius: 40px;
+  color: #0b5f4e;
+}
+
+.late-indicator {
+  background: #ffebe6;
+  color: #c73b1e;
+  padding: 6px 20px;
+  border-radius: 40px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ontime-indicator {
+  background: #c9f0e6;
+  color: #0b5f4e;
+  padding: 6px 20px;
+  border-radius: 40px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Name input row (visible when no name or no records) */
+.name-setup-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  background: #eef5f9;
+  border-radius: 60px;
+  padding: 16px 24px;
+  margin: 10px 0 20px;
+}
+
+.name-input-unit {
+  flex: 3;
+  min-width: 250px;
+}
+
+.name-input-unit label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #216c7c;
+  margin-left: 16px;
+  margin-bottom: 4px;
+  letter-spacing: 0.4px;
+  text-align: left;
+}
+
+.name-input-unit input {
+  width: 100%;
+  padding: 14px 24px;
+  background: white;
+  border: 2px solid #c4dbe8;
+  border-radius: 60px;
+  font-size: 1.1rem;
+  outline: none;
+  transition: 0.15s;
+  text-align: left;
+}
+
+.name-input-unit input:focus {
+  border-color: #1e8b74;
+  box-shadow: 0 0 0 4px rgba(36, 138, 116, 0.15);
+}
+
+.save-name-btn {
+  background: #1f7f6b;
+  border: none;
+  border-radius: 60px;
+  padding: 14px 38px;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 8px 16px -12px #0d4d40;
+  cursor: pointer;
+  transition: 0.12s;
+  white-space: nowrap;
+  border: 1px solid rgba(255,255,255,0.3);
+  height: 58px;
+}
+
+.save-name-btn:active {
+  transform: scale(0.96);
+  background: #146353;
+}
+
+.save-name-btn:hover {
+  background: #1a6f5c;
+}
+
+/* Present row (visible after name saved AND there are records) */
+.present-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #e2f3ef;
+  border-radius: 60px;
+  padding: 12px 28px;
+  margin: 20px 0 25px;
+  border: 2px solid #1f8f74;
+}
+
+.welcome-badge {
+  background: white;
+  border-radius: 40px;
+  padding: 12px 28px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #115e4a;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+.present-action {
+  background: #1f7f6b;
+  border: none;
+  border-radius: 60px;
+  padding: 14px 48px;
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 10px 20px -10px #0d4d40;
+  cursor: pointer;
+  transition: 0.12s;
+  border: 1px solid rgba(255,255,255,0.4);
+}
+
+.present-action:active {
+  transform: scale(0.96);
+  background: #146353;
+}
+
+.present-action:hover {
+  background: #1a6f5c;
+}
+
+.msg-chip {
+  background: #daf2ec;
+  border-radius: 60px;
+  padding: 12px 22px;
+  margin: 16px 0 18px;
+  font-weight: 500;
+  color: #0d5d4d;
+  display: inline-block;
+  font-size: 0.95rem;
+}
+
+.list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 28px 0 14px 6px;
+  flex-wrap: wrap;
+}
+
+.list-header h3 {
+  font-size: 1.4rem;
+  font-weight: 540;
+  color: #1a4d5a;
+}
+
+.count-badge {
+  background: #b4dbd1;
+  padding: 6px 18px;
+  border-radius: 60px;
+  font-weight: 600;
+  color: #054538;
+}
+
+.records-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+  margin-top: 8px;
+}
+
+.record-card {
+  background: white;
+  border-radius: 32px;
+  padding: 18px 18px 16px;
+  box-shadow: 0 6px 18px -10px #2b707e;
+  border: 1px solid #cde3ec;
+  transition: transform 0.1s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.record-card.late-card {
+  border-left: 6px solid #c73b1e;
+  background: #fffaf8;
+}
+
+.record-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -12px #1f6572;
+}
+
+.card-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-name {
+  font-size: 1.4rem;
+  font-weight: 570;
+  color: #093d48;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.section-pill {
+  background: #c9f0e6;
+  border-radius: 40px;
+  padding: 6px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0b5f4e;
+  white-space: nowrap;
+}
+
+.datetime-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: #2e717f;
+  font-size: 0.95rem;
+  margin: 6px 0 8px;
+  flex-wrap: wrap;
+}
+
+.datetime-row.late {
+  color: #c73b1e;
+  font-weight: 600;
+}
+
+.late-badge-small {
+  background: #ffcdc2;
+  color: #c73b1e;
+  padding: 2px 10px;
+  border-radius: 30px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ontime-badge-small {
+  background: #c9f0e6;
+  color: #0b5f4e;
+  padding: 2px 10px;
+  border-radius: 30px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.btn-sm {
+  background: #ebf5fa;
+  border: none;
+  border-radius: 40px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 540;
+  color: #165f6e;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: 0.1s;
+  border: 1px solid #c7deec;
+}
+
+/* Edit only – no delete button */
+.btn-sm:hover {
+  background: #d3eaf3;
+}
+
+.btn-sm:active {
+  transform: scale(0.96);
+}
+
+.edit-card {
+  background: #e3f2f0;
+  border-radius: 36px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border: 2px solid #1d8872;
+}
+
+.edit-field {
+  width: 100%;
+  padding: 16px 22px;
+  border: 2px solid #1d8872;
+  border-radius: 60px;
+  font-size: 1.1rem;
+  background: white;
+  outline: none;
+  text-align: left;
+}
+
+.edit-field:focus {
+  border-color: #0e5f4f;
+  box-shadow: 0 0 0 3px rgba(29, 136, 114, 0.2);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: flex-end;
+}
+
+.edit-save {
+  background: #1f7f6b;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 14px 36px;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.edit-save:hover {
+  background: #146353;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  background: #d9ecf0;
+  border-radius: 60px;
+  padding: 48px 24px;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #236a77;
+  border: 2px dashed #9ecddb;
+}
+
+.footer-note {
+  margin-top: 30px;
+  font-size: 0.8rem;
+  color: #7faebd;
+  text-align: center;
+}
+
+.stats-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 48px;
+  max-width: 500px;
+  width: 90%;
+  padding: 32px 28px;
+  box-shadow: 0 30px 50px -20px #1a4d5a;
+  text-align: center;
+}
+
+.modal-content h3 {
+  font-size: 1.8rem;
+  color: #09323f;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.section-picker {
+  margin: 10px 0 30px;
+}
+
+.section-picker p {
+  font-weight: 600;
+  color: #216c7c;
+  margin-bottom: 18px;
+  font-size: 1.2rem;
+}
+
+.modal-section-buttons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.modal-section-btn {
+  background: white;
+  border: 2px solid #c4dbe8;
+  border-radius: 50px;
+  padding: 16px 36px;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #1a5b68;
+  cursor: pointer;
+  transition: 0.1s;
+  flex: 0 1 auto;
+  min-width: 100px;
+}
+
+.modal-section-btn:hover {
+  background: #e8f4f8;
+  border-color: #1f7f6b;
+}
+
+.modal-section-btn.active-section {
+  background: #1f7f6b;
+  border-color: #1f7f6b;
+  color: white;
+}
+
+.modal-close-btn {
+  background: #e0e7eb;
+  border: none;
+  border-radius: 60px;
+  padding: 16px 32px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2e5f6b;
+  width: 100%;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.modal-close-btn:hover {
+  background: #c0d5df;
+}
+
+.modal-close-btn:active {
+  background: #a0b9c5;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(0,0,0,0.1);
+  border-radius: 50%;
+  border-top-color: #227a6b;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Mobile styles */
+@media (max-width: 520px) {
+  body {
+    padding: 8px;
+  }
+  
+  .card {
+    padding: 16px 12px 20px;
+    border-radius: 32px;
+  }
+  
+  .top-bar {
+    padding: 12px 16px;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .section-indicator {
+    font-size: 1rem;
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .indicator-value {
+    font-size: 1.2rem;
+    padding: 4px 16px;
+    min-width: 60px;
+  }
+  
+  .change-section-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+  
+  .class-info-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .class-schedule {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .current-time-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .name-setup-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .save-name-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .present-row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+  }
+  
+  .welcome-badge {
+    justify-content: center;
+  }
+  
+  .present-action {
+    width: 100%;
+    justify-content: center;
+    font-size: 1.4rem;
+    padding: 14px 20px;
+  }
+  
+  .list-header {
+    margin: 14px 0 10px 0;
+  }
+  
+  .list-header h3 {
+    font-size: 1.2rem;
+  }
+  
+  .count-badge {
+    padding: 4px 14px;
+    font-size: 0.9rem;
+  }
+  
+  .records-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .record-card {
+    padding: 14px;
+  }
+  
+  .card-name {
+    font-size: 1.2rem;
+  }
+  
+  .section-pill {
+    padding: 4px 14px;
+    font-size: 0.85rem;
+  }
+  
+  .card-actions {
+    gap: 8px;
+  }
+  
+  .btn-sm {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .modal-section-btn {
+    font-size: 1.3rem;
+    padding: 12px 24px;
+    min-width: 60px;
+  }
+  
+  .modal-content {
+    padding: 24px 16px;
+    width: 95%;
+  }
+}
+
+/* PC styles */
+@media (min-width: 1024px) {
+  .records-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+  </style>
+</head>
+<body>
+<div class="card">
+  <!-- top bar with persistent section indicator + change button -->
+  <div class="top-bar">
+    <div class="section-indicator">
+      <span class="indicator-label">📍 2nd year:</span>
+      <span id="sectionIndicator" class="indicator-value">—</span>
+    </div>
+    <button class="change-section-btn" onclick="openStatsModal()">
+      🔁 SELECT YOUR SECTION
+    </button>
+  </div>
+
+  <!-- Class Schedule Info - Dynamically Updated -->
+  <div class="class-info-bar">
+    <div class="class-schedule" id="scheduleDisplay">
+      <span class="schedule-badge" id="morningSchedule">📚 Loading AM Class...</span>
+      <span class="schedule-badge" id="afternoonSchedule">📚 Loading PM Class...</span>
+    </div>
+    <span class="late-rule" id="lateRule">⚠️ Loading late rules...</span>
+  </div>
+
+  <!-- STEP 1: Name input (visible if no name OR no records exist) -->
+  <div id="nameSetupRow" class="name-setup-row">
+    <div class="name-input-unit">
+      <label>👤 enter your full name</label>
+      <input type="text" id="studentNameInput" placeholder="e.g. Maria Santos" autocomplete="off">
+    </div>
+    <button class="save-name-btn" onclick="saveNameAndAutoPresent()">
+      ✅ SAVE & PRESENT
+    </button>
+  </div>
+
+  <!-- STEP 2: Present row (visible only if name exists AND there are records) -->
+  <div id="presentRow" class="present-row hidden">
+    <div class="welcome-badge">👋 Welcome, <span id="displayNameSpan">...</span></div>
+    <button class="present-action" onclick="submitPresent()">
+      ✅ PRESENT
+    </button>
+  </div>
+
+  <div id="msg" class="msg-chip" style="display: none;"></div>
+
+  <!-- header -->
+  <div class="list-header">
+    <h3><strong>My Attended Records</strong></h3>
+    <div id="countDisplay" class="count-badge">0</div>
+  </div>
+
+  <!-- cards container -->
+  <div id="cardsContainer" class="records-grid">
+    <div class="empty-state">📭 Loading records...</div>
+  </div>
+
+  <div class="footer-note">⚡ Edit only · If no records, you'll need to enter name again.</div>
+</div>
+
+<!-- MODAL – section picker -->
+<div id="statsModal" class="stats-modal">
+  <div class="modal-content">
+    <h3>🔘 choose your section</h3>
+    <div class="section-picker">
+      <p>⚡ tap section to record:</p>
+      <div class="modal-section-buttons">
+        <button class="modal-section-btn" data-modal-section="A" onclick="pickModalSection('A')">A</button>
+        <button class="modal-section-btn" data-modal-section="B" onclick="pickModalSection('B')">B</button>
+        <button class="modal-section-btn" data-modal-section="C" onclick="pickModalSection('C')">C</button>
+        <button class="modal-section-btn" data-modal-section="D" onclick="pickModalSection('D')">D</button>
+      </div>
+    </div>
+    <button class="modal-close-btn" onclick="closeStatsModal()">START</button>
+  </div>
+</div>
+
+<!-- QR button (keeping as is) -->
+<div style="position: fixed; bottom: 20px; right: 20px; opacity:0.8;">
+  <button class="btn-sm" onclick="alert('QR code feature coming soon!')">📱 QR</button>
+</div>
+
+<script>
+  (function() {
+    // ---------- STATE ----------
+    let allRecords = [];               
+    let myRecords = [];                // records belonging to current IP
+    let currentUserIps = [];
+    let scheduleSettings = null;        // Store schedule settings
+    
+    // Persistent section from localStorage
+    const isFirstVisit = !localStorage.getItem('selectedSection');
+    let selectedRecordSection = localStorage.getItem('selectedSection') || null;
+
+    // Student's name (saved in localStorage)
+    let studentName = localStorage.getItem('studentName') || '';
+
+    // UI elements
+    const msgDiv = document.getElementById('msg');
+    const container = document.getElementById('cardsContainer');
+    const countSpan = document.getElementById('countDisplay');
+    const sectionIndicator = document.getElementById('sectionIndicator');
+    
+    // Two-step elements
+    const nameSetupRow = document.getElementById('nameSetupRow');
+    const presentRow = document.getElementById('presentRow');
+    const studentNameInput = document.getElementById('studentNameInput');
+    const displayNameSpan = document.getElementById('displayNameSpan');
+    
+    // Schedule display elements
+    const morningSchedule = document.getElementById('morningSchedule');
+    const afternoonSchedule = document.getElementById('afternoonSchedule');
+    const lateRule = document.getElementById('lateRule');
+
+    // modal elements
+    const modal = document.getElementById('statsModal');
+    const modalSectionBtns = document.querySelectorAll('.modal-section-btn');
+
+    // ---------- helper functions ----------
+    function showMessage(text, isSuccess = true) {
+      msgDiv.style.display = 'inline-block';
+      msgDiv.innerText = text;
+      msgDiv.style.background = isSuccess ? '#daf2ec' : '#ffded5';
+      msgDiv.style.color = isSuccess ? '#0d5d4d' : '#b14737';
+      setTimeout(() => { msgDiv.style.display = 'none'; }, 3000);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"]/g, function(c) {
+        if (c === '&') return '&amp;';
+        if (c === '<') return '&lt;';
+        if (c === '>') return '&gt;';
+        if (c === '"') return '&quot;';
+        return c;
+      });
+    }
+
+    // Format time from HH:MM:SS to 12-hour format
+    function formatTimeTo12Hour(timeStr) {
+      if (!timeStr) return { formatted: '--:-- --', hour: 0, minute: 0 };
+      
+      let hours = '00', minutes = '00';
+      
+      if (typeof timeStr === 'string' && timeStr.match(/^\d{2}:\d{2}:\d{2}$/)) {
+        [hours, minutes] = timeStr.split(':');
+      } else if (typeof timeStr === 'string') {
+        const timeMatch = timeStr.match(/(\d{2}):(\d{2}):(\d{2})/);
+        if (timeMatch) {
+          [hours, minutes] = [timeMatch[1], timeMatch[2]];
+        }
+      }
+      
+      const hour = parseInt(hours, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      const formatted = `${hour12}:${minutes} ${ampm}`;
+      
+      return { formatted, hour, minute: parseInt(minutes,10) };
+    }
+
+    function formatTimeDisplay(timeStr) {
+      if (!timeStr) return '--:-- --';
+      const { formatted } = formatTimeTo12Hour(timeStr);
+      return formatted;
+    }
+
+    // Fetch schedule settings
+    async function fetchScheduleSettings() {
+      try {
+        const response = await fetch('/attendance/schedule');
+        if (!response.ok) throw new Error('Failed to fetch schedule');
+        const data = await response.json();
+        scheduleSettings = data;
+        updateScheduleDisplay();
+      } catch (error) {
+        console.error('Error fetching schedule:', error);
+        morningSchedule.textContent = '📚 Failed to load AM Class';
+        afternoonSchedule.textContent = '📚 Failed to load PM Class';
+        lateRule.textContent = '⚠️ Failed to load late rules';
+      }
+    }
+
+    function updateScheduleDisplay() {
+      if (!scheduleSettings) return;
+      
+      const morningStart = formatTimeDisplay(scheduleSettings.morning_start);
+      const morningEnd = formatTimeDisplay(scheduleSettings.morning_end);
+      const afternoonStart = formatTimeDisplay(scheduleSettings.afternoon_start);
+      const afternoonEnd = scheduleSettings.afternoon_end ? formatTimeDisplay(scheduleSettings.afternoon_end) : null;
+      const morningLateCutoff = formatTimeDisplay(scheduleSettings.morning_late_cutoff);
+      const afternoonLateCutoff = formatTimeDisplay(scheduleSettings.afternoon_late_cutoff);
+      
+      if (morningSchedule) {
+        morningSchedule.textContent = `📚 AM Class: ${morningStart} - ${morningEnd}`;
+      }
+      
+      if (afternoonSchedule) {
+        if (afternoonEnd) {
+          afternoonSchedule.textContent = `📚 PM Class: ${afternoonStart} - ${afternoonEnd}`;
+        } else {
+          afternoonSchedule.textContent = `📚 PM Class: ${afternoonStart} onwards`;
+        }
+      }
+      
+      if (lateRule) {
+        lateRule.textContent = `⚠️ Late after ${morningLateCutoff} & ${afternoonLateCutoff}`;
+      }
+    }
+
+    // Philippine time
+    function getCurrentPhilippineDateTime() {
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const philippineTime = new Date(utc + (3600000 * 8));
+      
+      const year = philippineTime.getFullYear();
+      const month = (philippineTime.getMonth() + 1).toString().padStart(2, '0');
+      const day = philippineTime.getDate().toString().padStart(2, '0');
+      const deviceDate = `${year}-${month}-${day}`;
+      
+      const hours = philippineTime.getHours().toString().padStart(2, '0');
+      const minutes = philippineTime.getMinutes().toString().padStart(2, '0');
+      const seconds = philippineTime.getSeconds().toString().padStart(2, '0');
+      const deviceTime = `${hours}:${minutes}:${seconds}`;
+      
+      return { deviceDate, deviceTime };
+    }
+
+    // Late check
+    function isCurrentTimeLate() {
+      if (!scheduleSettings) return false;
+      
+      const { deviceTime } = getCurrentPhilippineDateTime();
+      const [hours, minutes] = deviceTime.split(':').map(Number);
+      const currentMinutes = hours * 60 + minutes;
+      
+      const parseTimeToMinutes = (timeStr) => {
+        if (!timeStr) return 0;
+        const [h, m] = timeStr.split(':').map(Number);
+        return h * 60 + m;
+      };
+      
+      const morningStart = parseTimeToMinutes(scheduleSettings.morning_start);
+      const morningLateCutoff = parseTimeToMinutes(scheduleSettings.morning_late_cutoff);
+      const morningEnd = parseTimeToMinutes(scheduleSettings.morning_end);
+      const afternoonStart = parseTimeToMinutes(scheduleSettings.afternoon_start);
+      const afternoonLateCutoff = parseTimeToMinutes(scheduleSettings.afternoon_late_cutoff);
+      
+      if (currentMinutes >= morningStart && currentMinutes <= morningEnd) {
+        return currentMinutes > morningLateCutoff;
+      }
+      
+      if (currentMinutes >= afternoonStart) {
+        return currentMinutes > afternoonLateCutoff;
+      }
+      return false;
+    }
+
+    // Check if already submitted today
+    function hasSubmittedToday() {
+      const { deviceDate } = getCurrentPhilippineDateTime();
+      return myRecords.some(record => record.date === deviceDate);
+    }
+
+    // Update section indicator
+    function updateSectionIndicator() {
+      if (sectionIndicator) {
+        sectionIndicator.innerText = selectedRecordSection || '—';
+      }
+      modalSectionBtns.forEach(btn => {
+        const btnSection = btn.getAttribute('data-modal-section');
+        if (btnSection === selectedRecordSection) {
+          btn.classList.add('active-section');
+        } else {
+          btn.classList.remove('active-section');
+        }
+      });
+    }
+
+    // Show/hide rows based on name AND record existence
+    function updateUIBasedOnNameAndRecords() {
+      const hasRecords = myRecords.length > 0;
+      
+      if (studentName && studentName.trim() !== '' && hasRecords) {
+        // Name exists AND there are records → show present row
+        nameSetupRow.classList.add('hidden');
+        presentRow.classList.remove('hidden');
+        displayNameSpan.innerText = escapeHtml(studentName);
+      } else {
+        // Either no name OR no records → show name input
+        nameSetupRow.classList.remove('hidden');
+        presentRow.classList.add('hidden');
+        
+        // If there's a name but no records, clear it to force re-entry
+        if (studentName && !hasRecords) {
+          // Clear the saved name because records are gone
+          studentName = '';
+          localStorage.removeItem('studentName');
+        }
+      }
+    }
+
+    // ---------- save name AND automatically present ----------
+    window.saveNameAndAutoPresent = async function() {
+      const name = studentNameInput.value.trim();
+      if (!name) {
+        showMessage('❗ Please enter your name', false);
+        return;
+      }
+
+      // Save name locally
+      studentName = name;
+      localStorage.setItem('studentName', name);
+      
+      // Update UI based on current records (which are still loading or empty)
+      // We'll handle after submission
+      
+      if (!selectedRecordSection) {
+        showMessage('⚠️ Please select a section first', false);
+        openStatsModal();
+        return;
+      }
+
+      // Check if already submitted today (rare on first use, but just in case)
+      if (hasSubmittedToday()) {
+        showMessage('❌ You have already submitted attendance today', false);
+        return;
+      }
+
+      const { deviceDate, deviceTime } = getCurrentPhilippineDateTime();
+      const isLate = isCurrentTimeLate();
+
+      try {
+        const res = await fetch('/attendance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            name: studentName,
+            section: selectedRecordSection,
+            deviceDate,
+            deviceTime
+          })
+        });
+        const data = await res.json();
+        
+        if (data.success === false) {
+          showMessage(data.message || '❌ Failed to record', false);
+        } else {
+          const lateMessage = isLate ? ' (LATE)' : '';
+          showMessage(`✅ Name saved & recorded as "${studentName}"${lateMessage}`);
+          await loadFromBackend(); // refresh records, now myRecords should have this entry
+        }
+      } catch (e) {
+        console.error('Auto present error:', e);
+        showMessage('❌ Backend error', false);
+      }
+    };
+
+    // ---------- SUBMIT PRESENT (for subsequent days) ----------
+    window.submitPresent = async function() {
+      if (!selectedRecordSection) {
+        showMessage('❗ First select a section', false);
+        openStatsModal();
+        return;
+      }
+
+      if (!studentName || studentName.trim() === '') {
+        showMessage('❗ Name missing – please reload', false);
+        return;
+      }
+
+      if (hasSubmittedToday()) {
+        showMessage('❌ You have already submitted attendance today', false);
+        return;
+      }
+
+      const { deviceDate, deviceTime } = getCurrentPhilippineDateTime();
+      const isLate = isCurrentTimeLate();
+
+      try {
+        const res = await fetch('/attendance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            name: studentName,
+            section: selectedRecordSection,
+            deviceDate,
+            deviceTime
+          })
+        });
+        const data = await res.json();
+        
+        if (data.success === false) {
+          showMessage(data.message || '❌ Failed to record', false);
+        } else {
+          const lateMessage = isLate ? ' (LATE)' : '';
+          showMessage(`✅ Recorded as "${studentName}"${lateMessage}`);
+          await loadFromBackend();
+        }
+      } catch (e) {
+        console.error('Submit error:', e);
+        showMessage('❌ Backend error', false);
+      }
+    };
+
+    // ---------- EDIT only (no delete) ----------
+    window.editRecord = function(recordId) {
+      const record = myRecords.find(r => r.id == recordId);
+      if (!record) return;
+      if (!isIpMatching(record.ip)) {
+        showMessage('⛔ You can only edit your own records', false);
+        loadFromBackend();
+        return;
+      }
+      myRecords = myRecords.map(r => ({ ...r, editing: r.id == recordId }));
+      renderCards();
+    };
+
+    window.cancelEdit = function(recordId) {
+      myRecords = myRecords.map(r => ({ ...r, editing: false }));
+      renderCards();
+    };
+
+    window.saveEdit = async function(recordId) {
+      const record = myRecords.find(r => r.id == recordId);
+      if (!record || !isIpMatching(record.ip)) {
+        showMessage('⛔ You can only edit your own records', false);
+        await loadFromBackend();
+        return;
+      }
+
+      const nameField = document.getElementById(`editName_${recordId}`);
+      const secField = document.getElementById(`editSection_${recordId}`);
+      if (!nameField || !secField) return;
+
+      const newName = nameField.value.trim();
+      const newSection = secField.value;
+      if (!newName) {
+        showMessage('Name is required', false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/attendance/${recordId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newName, section: newSection })
+        });
+        const result = await res.json();
+        
+        if (result.success === false) {
+          showMessage(result.message || '❌ Update failed', false);
+        } else {
+          showMessage(result.message || '✅ Updated successfully');
+          await loadFromBackend();
+        }
+      } catch (e) {
+        console.error('Save edit error:', e);
+        showMessage('Update failed', false);
+      }
+    };
+
+    // IP helpers
+    function normalizeIp(ip) {
+      if (!ip) return '';
+      ip = String(ip).trim();
+      if (ip === '::1' || ip === '::ffff:127.0.0.1' || ip === '0:0:0:0:0:0:0:1') return '127.0.0.1';
+      if (ip.startsWith('::ffff:')) return ip.substring(7);
+      return ip;
+    }
+
+    function isIpMatching(recordIp) {
+      if (!recordIp || !currentUserIps.length) return false;
+      const normalizedRecordIp = normalizeIp(recordIp);
+      return currentUserIps.some(userIp => normalizeIp(userIp) === normalizedRecordIp);
+    }
+
+    async function getCurrentUserIp() {
+      try {
+        const res = await fetch('/attendance/my-ip');
+        if (!res.ok) throw new Error('Could not get IP');
+        const data = await res.json();
+        currentUserIps = [];
+        if (data.ip) {
+          currentUserIps.push(data.ip, normalizeIp(data.ip));
+        }
+        if (data.all_ips && Array.isArray(data.all_ips)) {
+          data.all_ips.forEach(ip => {
+            currentUserIps.push(ip, normalizeIp(ip));
+          });
+        }
+        currentUserIps = [...new Set(currentUserIps)];
+        return currentUserIps;
+      } catch (e) {
+        console.warn('Using fallback IP localhost');
+        currentUserIps = ['127.0.0.1', '::1', 'localhost'];
+        return currentUserIps;
+      }
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      if (typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = dateStr.split('-');
+        return `${day}/${month}/${year}`;
+      }
+      return dateStr;
+    }
+
+    // Load from backend
+    async function loadFromBackend() {
+      try {
+        container.innerHTML = `<div class="empty-state"><span class="loading-spinner"></span> Loading records...</div>`;
+        
+        const res = await fetch('/attendance');
+        if (!res.ok) throw new Error('network error');
+        const data = await res.json();
+
+        if (currentUserIps.length === 0) await getCurrentUserIp();
+
+        allRecords = Array.isArray(data) ? data.map(item => ({
+          id: item.id,
+          name: item.name || '',
+          section: item.section || '',
+          date: item.date || '',
+          time: item.time || '',
+          ip: item.ip_address || '',
+          is_late: item.is_late === 1 || item.is_late === true,
+          editing: false,
+          isOwnedByCurrentUser: isIpMatching(item.ip_address)
+        })) : [];
+
+        myRecords = allRecords.filter(r => r.isOwnedByCurrentUser === true);
+        
+        updateCount();
+        renderCards();
+        
+        // After loading records, update UI (this may hide name row if records exist)
+        updateUIBasedOnNameAndRecords();
+      } catch (e) {
+        console.error('Error loading from backend:', e);
+        container.innerHTML = `<div class="empty-state">❌ Failed to load records. Please refresh.</div>`;
+        showMessage('Failed to load records', false);
+      }
+    }
+
+    function updateCount() {
+      countSpan.innerText = myRecords.length;
+    }
+
+    function renderCards() {
+      if (!container) return;
+
+      if (myRecords.length === 0) {
+        container.innerHTML = `<div class="empty-state">📭 You have no attendance records yet</div>`;
+        countSpan.innerText = '0';
+        return;
+      }
+
+      let html = '';
+      myRecords.forEach((rec) => {
+        const { formatted: formattedTime } = formatTimeTo12Hour(rec.time);
+        const lateClass = rec.is_late ? 'late-card' : '';
+        const lateBadge = rec.is_late 
+          ? '<span class="late-badge-small">⚠️ LATE</span>' 
+          : '<span class="ontime-badge-small">✓ ON TIME</span>';
+        
+        if (rec.editing) {
+          html += `<div class="edit-card" data-record-id="${rec.id}">
+            <input type="text" class="edit-field" id="editName_${rec.id}" value="${escapeHtml(rec.name)}" placeholder="name">
+            <select class="edit-field" id="editSection_${rec.id}">
+              <option value="A" ${rec.section === 'A' ? 'selected' : ''}>Section A</option>
+              <option value="B" ${rec.section === 'B' ? 'selected' : ''}>Section B</option>
+              <option value="C" ${rec.section === 'C' ? 'selected' : ''}>Section C</option>
+              <option value="D" ${rec.section === 'D' ? 'selected' : ''}>Section D</option>
+            </select>
+            <div class="edit-actions">
+              <button class="btn-sm" onclick="cancelEdit('${rec.id}')">✖ Cancel</button>
+              <button class="btn-sm edit-save" onclick="saveEdit('${rec.id}')">💾 Save</button>
+            </div>
+          </div>`;
+        } else {
+          html += `<div class="record-card ${lateClass}">
+            <div class="card-main">
+              <span class="card-name">${escapeHtml(rec.name)}</span>
+              <span class="section-pill">${escapeHtml(rec.section)}</span>
+            </div>
+            <div class="datetime-row">
+              <span>📅 ${formatDate(rec.date)}</span>
+              <span>⏰ ${formattedTime}</span>
+            </div>
+            <div style="margin: 4px 0;">${lateBadge}</div>
+            <div class="card-actions">
+              <button class="btn-sm" onclick="editRecord('${rec.id}')">✎ Edit</button>
+              <!-- DELETE BUTTON REMOVED -->
+            </div>
+          </div>`;
+        }
+      });
+      container.innerHTML = html;
+    }
+
+    // Modal functions
+    window.openStatsModal = function() {
+      updateSectionIndicator();
+      modal.style.display = 'flex';
+    };
+
+    window.closeStatsModal = function() {
+      if (!selectedRecordSection) {
+        showMessage('⚠️ You must select a section first', false);
+        return;
+      }
+      modal.style.display = 'none';
+    };
+
+    window.pickModalSection = function(section) {
+      selectedRecordSection = section;
+      localStorage.setItem('selectedSection', section);
+      updateSectionIndicator();
+      showMessage(`✅ Recording to section ${section}`, true);
+    };
+
+    window.onclick = function(e) {
+      if (e.target === modal) {
+        if (!selectedRecordSection) {
+          showMessage('⚠️ Select a section first', false);
+          return;
+        }
+        modal.style.display = 'none';
+      }
+    };
+
+    // Initial load
+    async function init() {
+      await getCurrentUserIp();
+      await fetchScheduleSettings();
+      await loadFromBackend();
+      updateSectionIndicator();
+      
+      // Pre-fill name input if already saved (but UI will adjust based on records)
+      if (studentName) {
+        studentNameInput.value = studentName;
+      }
+      
+      // Show modal only on first visit (no section selected)
+      if (isFirstVisit) {
+        setTimeout(() => { openStatsModal(); }, 500);
+      }
+    }
+
+    init();
+  })();
+</script>
+</body>
+</html>
